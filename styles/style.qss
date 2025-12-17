@@ -1,0 +1,51 @@
+
+/* Base */
+* { font-family: Segoe UI, Montserrat, Arial, Helvetica, sans-serif; }
+QMainWindow { background-color: #0B0F19; }
+
+/* Sidebar */
+#Sidebar { background-color: #121829; border-right: 1px solid #253052; }
+QToolButton#SidebarItem {
+    color: #A9B0BE; padding: 10px 14px; border-radius: 10px;
+    text-align: left; margin: 4px 8px; font-weight: 600;
+}
+QToolButton#SidebarItem:hover { background-color: #1A2238; color: #E7E9EE; }
+QToolButton#SidebarItem[active="true"] {
+    background-color: #1A2238; color: #E7E9EE; border: 1px solid #22C55E;
+}
+
+/* Header */
+#HeaderFrame { background-color: #0B0F19; border-bottom: 1px solid #253052; }
+QLabel#HeaderTitle { color: #E7E9EE; font-size: 22px; font-weight: 700; }
+QLabel#HeaderSubtitle { color: #A9B0BE; font-size: 12px; }
+
+/* Cards */
+QFrame#Card { background-color: #121829; border: 1px solid #253052; border-radius: 12px; }
+
+/* Inputs */
+QLineEdit, QComboBox, QDateEdit, QListWidget {
+    color: #E7E9EE; background-color: #1A2238; border: 1px solid #253052; border-radius: 10px; padding: 7px;
+}
+QLineEdit:focus, QComboBox:focus, QDateEdit:focus { border: 1px solid #38BDF8; }
+
+/* Buttons */
+QPushButton#Primary {
+    color: #0B0F19; background-color: #22C55E; border-radius: 10px; padding: 10px 14px; font-weight: 700;
+}
+QPushButton#Primary:hover { background-color: #16A34A; }
+QPushButton { color: #E7E9EE; background-color: #1A2238; border: 1px solid #253052; border-radius: 10px; padding: 8px 12px; }
+QPushButton:hover { background-color: #253052; }
+
+/* Tabs */
+QTabWidget::pane { border: 1px solid #253052; border-radius: 10px; }
+QTabBar::tab { color: #A9B0BE; background: #1A2238; padding: 8px 12px; border-top-left-radius: 10px; border-top-right-radius: 10px; }
+QTabBar::tab:selected { background: #22C55E; color: #0B0F19; }
+
+/* StatusBar */
+QStatusBar { color: #A9B0BE; }
+
+/* Dialogs (dark) */
+QMessageBox { background-color: #121829; }
+QMessageBox QLabel { color: #E7E9EE; }
+QFileDialog, QDialog { background-color: #121829; color: #E7E9EE; }
+QToolTip { color: #0B0F1A; background-color: #E7E9EE; border: 1px solid #253052; }

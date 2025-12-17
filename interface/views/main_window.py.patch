@@ -1,0 +1,6 @@
+
+# PATCH: ajuste na criação da HomePage para receber controller
+# No dicionário pages, troque:
+# 'home': HomePage(),
+# por:
+# 'home': HomePage(self.controller),

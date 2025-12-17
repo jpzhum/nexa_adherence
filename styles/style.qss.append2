@@ -1,0 +1,26 @@
+
+/* --- PATCH v4.1: tabela estilo sistema --- */
+QTableView {
+  background-color: #121829;
+  color: #E7E9EE;
+  gridline-color: #253052;
+  border: 1px solid #253052;
+  border-radius: 10px;
+  selection-background-color: #1A2238;
+  selection-color: #E7E9EE;
+}
+QHeaderView::section {
+  background-color: #1A2238;
+  color: #A9B0BE;
+  padding: 6px;
+  border: 0px;
+  border-right: 1px solid #253052;
+}
+QTableView::item:selected {
+  background-color: #1A2238;
+}
+QTableView QTableCornerButton::section {
+  background-color: #1A2238;
+  border: 0px;
+  border-right: 1px solid #253052;
+}
