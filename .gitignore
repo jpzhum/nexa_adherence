@@ -1,0 +1,34 @@
+# Byte-compiled / virtual env
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv/
+env/
+venv/
+
+# PyInstaller
+*.spec
+build/
+dist/
+
+# Logs and local data
+logs/
+*.log
+config.json
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Data dumps (keep sample_data/ tracked for fixtures)
+*.xlsx
+*.xls
+data/
+
+# v2 local database/logs
+v2/data/*.db
+v2/data/*.sqlite
+v2/data/logs/
