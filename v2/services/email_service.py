@@ -108,8 +108,7 @@ def montar_html(periodo: str, data_emissao: str, inline: bool = True) -> str:
     Este e-mail foi enviado automaticamente pelo sistema corporativo.<br>
     <strong>Para duvidas ou ajustes na automacao, entre em contato com o desenvolvedor:</strong><br>
     Joao Pedro Nogueira Silva<br>
-    Auxiliar Administrativo - Custos e Orcamento<br>
-    Email: email-removido@example.com | Tel.: +55 (00) 00000-0000
+    Email: email-removido@example.com |
   </p>
 
   <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">
