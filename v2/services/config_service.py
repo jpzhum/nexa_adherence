@@ -4,7 +4,6 @@ from typing import Any, Dict, List
 
 from v2.db.repositories.configs_repo import is_empty, list_configs, upsert_many, upsert_value
 
-
 DEFAULTS: Dict[str, Any] = {
     "data_dir": "",
     "exclusions_agrup": [],

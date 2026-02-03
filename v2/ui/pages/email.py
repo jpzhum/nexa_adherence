@@ -1,14 +1,14 @@
 from PyQt5.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QLabel,
-    QFrame,
-    QPushButton,
-    QMessageBox,
     QFileDialog,
+    QFrame,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from v2.services.email_service import export_package, has_outlook, preparar_arquivos, enviar_email
+from v2.services.email_service import enviar_email, export_package, has_outlook, preparar_arquivos
 from v2.services.recipients_service import load_recipients
 from v2.services.result_store import result_store
 
@@ -89,7 +89,13 @@ class EmailPage(QWidget):
             imagens, caminho_pdf = preparar_arquivos(final_df, gerar_pdf=False, periodo=periodo)
             dest, cc = load_recipients()
             assunto = f"Relatorio de Aderencia - {periodo}"
-            enviar_email(destinatarios=dest, cc=cc, assunto=assunto, imagens_inline=imagens, caminho_pdf=caminho_pdf)
+            enviar_email(
+                destinatarios=dest,
+                cc=cc,
+                assunto=assunto,
+                imagens_inline=imagens,
+                caminho_pdf=caminho_pdf,
+            )
             QMessageBox.information(self, "Sucesso", "E-mail enviado (ver Outlook).")
         except Exception as exc:
             QMessageBox.warning(

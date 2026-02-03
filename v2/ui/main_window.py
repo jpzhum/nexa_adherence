@@ -1,29 +1,29 @@
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import (
-    QMainWindow,
-    QWidget,
-    QHBoxLayout,
-    QVBoxLayout,
     QFrame,
-    QToolButton,
-    QStackedWidget,
+    QHBoxLayout,
     QLabel,
+    QMainWindow,
+    QStackedWidget,
     QStatusBar,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from v2.ui.pages.home import HomePage
+from v2.services.system_state import SystemStateService
 from v2.ui.pages.bases import BasesPage
-from v2.ui.pages.import_page import ImportPage
 from v2.ui.pages.consolidate import ConsolidatePage
 from v2.ui.pages.dashboard import DashboardPage
 from v2.ui.pages.email import EmailPage
-from v2.ui.pages.indicators import IndicatorsPage
-from v2.ui.pages.reports import ReportsPage
-from v2.ui.pages.settings import SettingsPage
 from v2.ui.pages.help import HelpPage
-from v2.ui.pages.rules import RulesPage
+from v2.ui.pages.home import HomePage
+from v2.ui.pages.import_page import ImportPage
+from v2.ui.pages.indicators import IndicatorsPage
 from v2.ui.pages.recipients import RecipientsPage
-from v2.services.system_state import SystemStateService
+from v2.ui.pages.reports import ReportsPage
+from v2.ui.pages.rules import RulesPage
+from v2.ui.pages.settings import SettingsPage
 
 
 class MainWindow(QMainWindow):
@@ -139,7 +139,9 @@ class MainWindow(QMainWindow):
         self._buttons["bases"].clicked.connect(lambda: self.set_page("bases", "Bases"))
         self._buttons["import"].clicked.connect(lambda: self.set_page("import", "Importacao"))
         self._buttons["cons"].clicked.connect(lambda: self.set_page("cons", "Consolidacao"))
-        self._buttons["dash"].clicked.connect(lambda: (self.set_page("dash", "Dashboard"), self.pages["dash"].load()))
+        self._buttons["dash"].clicked.connect(
+            lambda: (self.set_page("dash", "Dashboard"), self.pages["dash"].load())
+        )
         self._buttons["indic"].clicked.connect(
             lambda: (self.set_page("indic", "Indicadores"), self.pages["indic"].load())
         )
@@ -147,7 +149,9 @@ class MainWindow(QMainWindow):
         self._buttons["rules"].clicked.connect(lambda: self.set_page("rules", "Regras"))
         self._buttons["recp"].clicked.connect(lambda: self.set_page("recp", "Destinatarios"))
         self._buttons["mail"].clicked.connect(lambda: self.set_page("mail", "E-mail"))
-        self._buttons["settings"].clicked.connect(lambda: self.set_page("settings", "Configuracoes"))
+        self._buttons["settings"].clicked.connect(
+            lambda: self.set_page("settings", "Configuracoes")
+        )
         self._buttons["help"].clicked.connect(lambda: self.set_page("help", "Ajuda"))
 
         self.set_page("home", "Home")

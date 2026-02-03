@@ -1,15 +1,28 @@
 import os
 import textwrap
 
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 from matplotlib import font_manager
+
+from v2.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 CORES = {
     "entregue": "#1F5836",
     "parcial": "#F2B705",
     "nao_entregue": "#E86C28",
 }
+
+TURNOS_PADRAO = ("TURNO A", "TURNO B", "TURNO C")
+
+
+def _require_columns(df: pd.DataFrame, columns: tuple[str, ...], context: str) -> None:
+    missing = [col for col in columns if col not in df.columns]
+    if missing:
+        raise ValueError(f"{context}: colunas obrigatorias ausentes: {', '.join(missing)}")
+
 
 try:
     _fonts = {f.name for f in font_manager.fontManager.ttflist}
@@ -79,7 +92,9 @@ def _annotate_stacked_bars(ax, bottoms, tops, labels_top, labels_bottom=None):
                 color="white",
                 fontsize=11,
                 fontweight="bold",
-                bbox=dict(facecolor=CORES["nao_entregue"], edgecolor="none", boxstyle="round,pad=0.2"),
+                bbox=dict(
+                    facecolor=CORES["nao_entregue"], edgecolor="none", boxstyle="round,pad=0.2"
+                ),
             )
 
 
@@ -99,13 +114,16 @@ def _annotate_points(ax, xs, ys, fmt="{:.0f}", color=CORES["entregue"]):
 
 
 def grafico_situacao_geral(final_df: pd.DataFrame):
+    _require_columns(final_df, ("Status",), "Grafico situacao geral")
     fig, ax = plt.subplots(figsize=(8, 6))
     status = final_df["Status"].value_counts()
     valores = [status.get("Completo", 0), status.get("Incompleto", 0), status.get("Ausente", 0)]
     labels = ["Entregues", "Parciais", "Nao entregues"]
     cores = [CORES["entregue"], CORES["parcial"], CORES["nao_entregue"]]
 
-    _, _, autotexts = ax.pie(valores, labels=labels, autopct="%1.1f%%", colors=cores, startangle=140)
+    _, _, autotexts = ax.pie(
+        valores, labels=labels, autopct="%1.1f%%", colors=cores, startangle=140
+    )
     for t in autotexts:
         t.set_color("white")
         t.set_fontweight("bold")
@@ -118,14 +136,50 @@ def grafico_situacao_geral(final_df: pd.DataFrame):
 
 
 def grafico_aderencia_qtd_turno(final_df: pd.DataFrame):
+    if final_df.empty:
+        raise ValueError("Sem dados para gerar grafico de turnos.")
+    df = final_df.copy()
+
+    for turno in TURNOS_PADRAO:
+        if turno not in df.columns:
+            df[turno] = "-"
+    if "Escala" not in df.columns:
+        df["Escala"] = "PADRAO"
+
+    escala = df["Escala"].astype(str).str.strip().str.upper()
+    expected = {
+        "TURNO A": len(df),
+        "TURNO B": int((escala != "ADM").sum()),
+        "TURNO C": int((escala != "ADM").sum()),
+    }
+    entregues_map = {turno: int((df[turno] == "OK").sum()) for turno in TURNOS_PADRAO}
+    nao_entregues_map = {
+        turno: max(expected[turno] - entregues_map[turno], 0) for turno in TURNOS_PADRAO
+    }
+
     fig, ax = plt.subplots(figsize=(10, 6))
-    turnos = ["TURNO A", "TURNO B", "TURNO C"]
-    entregues = [(final_df[t] == "OK").sum() for t in turnos]
-    nao_entregues = [len(final_df) - e for e in entregues]
+    turnos = list(TURNOS_PADRAO)
+    entregues = [entregues_map[t] for t in turnos]
+    nao_entregues = [nao_entregues_map[t] for t in turnos]
+
+    if "OUTROS" in df.columns:
+        outros_ok = int((df["OUTROS"] == "OK").sum())
+        if outros_ok > 0:
+            turnos.append("OUTROS")
+            entregues.append(outros_ok)
+            nao_entregues.append(0)
+
     pos = range(len(turnos))
     largura = 0.4
     ax.bar(pos, entregues, largura, label="Entregues", color=CORES["entregue"])
-    ax.bar(pos, nao_entregues, largura, bottom=entregues, label="Nao entregues", color=CORES["nao_entregue"])
+    ax.bar(
+        pos,
+        nao_entregues,
+        largura,
+        bottom=entregues,
+        label="Nao entregues",
+        color=CORES["nao_entregue"],
+    )
     for i in pos:
         ax.text(
             i,
@@ -158,6 +212,9 @@ def grafico_aderencia_qtd_turno(final_df: pd.DataFrame):
 
 
 def grafico_evolucao_diaria(final_df: pd.DataFrame):
+    _require_columns(
+        final_df, ("Data Cabecalho", "Entregues", "Faltantes"), "Grafico evolucao diaria"
+    )
     fig, ax = plt.subplots(figsize=(10, 6))
     diario = final_df.groupby("Data Cabecalho")[["Entregues", "Faltantes"]].sum()
     x_labels = pd.to_datetime(diario.index, errors="coerce").strftime("%d/%m").tolist()
@@ -183,6 +240,11 @@ def grafico_evolucao_diaria(final_df: pd.DataFrame):
 
 
 def grafico_agrupamento_percent(final_df: pd.DataFrame):
+    _require_columns(
+        final_df,
+        ("Gestor", "Agrup Equipamento", "Aderencia"),
+        "Grafico aderencia por agrupamento",
+    )
     fig, ax = plt.subplots(figsize=(14, 6))
     df = normalizar_colheita(final_df.copy())
 
@@ -248,7 +310,14 @@ def grafico_agrupamento_percent(final_df: pd.DataFrame):
     return fig
 
 
-def grafico_agrupamento_qtd(final_df: pd.DataFrame, mostrar_separadores=True, mostrar_absolutos=True):
+def grafico_agrupamento_qtd(
+    final_df: pd.DataFrame, mostrar_separadores=True, mostrar_absolutos=True
+):
+    _require_columns(
+        final_df,
+        ("Gestor", "Agrup Equipamento", "Entregues", "Faltantes"),
+        "Grafico qtd por agrupamento",
+    )
     fig, ax = plt.subplots(figsize=(14, 8))
     df = normalizar_colheita(final_df.copy())
 
@@ -294,7 +363,15 @@ def grafico_agrupamento_qtd(final_df: pd.DataFrame, mostrar_separadores=True, mo
     if mostrar_absolutos:
         for i, (e, n) in enumerate(zip(entregues, faltantes)):
             if entregues_pct[i] > 0 and e > 0:
-                ax.text(i, entregues_pct[i] / 2, str(e), ha="center", va="center", color="white", fontweight="bold")
+                ax.text(
+                    i,
+                    entregues_pct[i] / 2,
+                    str(e),
+                    ha="center",
+                    va="center",
+                    color="white",
+                    fontweight="bold",
+                )
             if faltantes_pct[i] > 0 and n > 0:
                 ax.text(
                     i,
@@ -362,7 +439,7 @@ def salvar_graficos(final_df: pd.DataFrame, pasta_destino: str):
         plt.close(fig)
         imagens["agrup_pct"] = caminho
     except Exception as exc:
-        print(f"[warn] Falha ao gerar agrup_pct: {exc}")
+        logger.warning("Falha ao gerar agrup_pct: %s", exc)
 
     try:
         fig = grafico_situacao_geral(final_df)
@@ -371,7 +448,7 @@ def salvar_graficos(final_df: pd.DataFrame, pasta_destino: str):
         plt.close(fig)
         imagens["situacao_geral"] = caminho
     except Exception as exc:
-        print(f"[warn] Falha ao gerar situacao_geral: {exc}")
+        logger.warning("Falha ao gerar situacao_geral: %s", exc)
 
     try:
         fig = grafico_aderencia_qtd_turno(final_df)
@@ -380,7 +457,7 @@ def salvar_graficos(final_df: pd.DataFrame, pasta_destino: str):
         plt.close(fig)
         imagens["aderencia_qtd_turno"] = caminho
     except Exception as exc:
-        print(f"[warn] Falha ao gerar aderencia_qtd_turno: {exc}")
+        logger.warning("Falha ao gerar aderencia_qtd_turno: %s", exc)
 
     try:
         fig = grafico_evolucao_diaria(final_df)
@@ -389,7 +466,7 @@ def salvar_graficos(final_df: pd.DataFrame, pasta_destino: str):
         plt.close(fig)
         imagens["evolucao_diaria"] = caminho
     except Exception as exc:
-        print(f"[warn] Falha ao gerar evolucao_diaria: {exc}")
+        logger.warning("Falha ao gerar evolucao_diaria: %s", exc)
 
     try:
         fig = grafico_agrupamento_qtd(final_df)
@@ -398,6 +475,6 @@ def salvar_graficos(final_df: pd.DataFrame, pasta_destino: str):
         plt.close(fig)
         imagens["agrup_qtd_100pct"] = caminho
     except Exception as exc:
-        print(f"[warn] Falha ao gerar agrup_qtd_100pct: {exc}")
+        logger.warning("Falha ao gerar agrup_qtd_100pct: %s", exc)
 
     return imagens

@@ -1,92 +1,68 @@
-﻿Nexa Adherence
+﻿# Nexa Adherence
 
-Sistema corporativo para análise de aderência operacional, consolidação de apontamentos, geração de relatórios, dashboards e exportação para BI.
+Projeto Python para analise de aderencia operacional, com duas versoes:
 
-Este repositório contém duas versões do sistema:
+- `v2/` - versao principal (recomendada)
+- `v1/` - versao legacy (referencia/fallback)
 
-v1/ – Legacy
-Primeira versão validada em produção. Mantida como fallback, referência funcional e histórico.
+## Requisitos
 
-v2/ – Versão Atual (Recomendada)
-Arquitetura modular, persistência em banco SQLite, validações robustas, melhor UX, dashboard aprimorado, exportações estruturadas e fluxo mais seguro.
+- Python 3.10+
+- Windows recomendado para recursos de Outlook (opcional)
 
-🚀 Começando pela versão atual (v2)
+## Setup rapido (v2)
 
-Acesse:
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -e .[dev]
+# opcional para UI:
+pip install -e .[gui]
+# opcional para Outlook no Windows:
+pip install -e .[outlook]
+```
 
-v2/
+## Configuracao
 
+1. Copie `.env.example` para `.env` e ajuste se necessario.
+2. Para destinatarios locais, use os exemplos:
+   - `v1/destinatarios.example.json`
+   - `v2/destinatarios.example.json`
+3. Arquivos locais com dados reais nao devem ir para o Git.
 
-Lá você encontra:
+## Executar
 
-README exclusivo
+- v2 (principal):
 
-instruções completas de execução
+```powershell
+python v2/app.py
+```
 
-dependências
+- v1 (legacy):
 
-guia de deploy corporativo
+```powershell
+python v1/app.py
+```
 
-🧭 Estrutura do Repositório
-/
- ├── v1/        → Versão legada (funcional, usada como referência e fallback)
- ├── v2/        → Versão atual (principal)
- ├── docs/      → Documentação e guias
- ├── README.md  → Este arquivo
+## Qualidade
 
-📌 Sobre as versões
-🔵 v2 – Atual
+```powershell
+ruff check .
+ruff format .
+pytest -q
+```
 
-Banco SQLite interno
+## Estrutura
 
-Importação validada e deduplicada
+- `v2/`: app principal, parser/importacao, servicos, UI e SQLite
+- `v1/`: versao legacy para referencia
+- `tests/`: testes unitarios sem UI
+- `.github/workflows/ci.yml`: lint + testes em `push` e `pull_request`
 
-Configurações persistentes
+## Documentacao adicional
 
-Dashboard completo
-
-Relatórios Excel + base Power BI
-
-Envio de e-mail com pacote exportável
-
-Melhor controle de estado e mensagens ao usuário
-
-👉 Recomendada para uso corrente.
-
-🟠 v1 – Legado
-
-Primeira versão amplamente utilizada
-
-Regras de negócio já validadas
-
-Mantida por segurança e auditoria
-
-Pode ser usada como fallback
-
-👉 Indicada quando:
-
-é necessário rollback rápido
-
-deseja-se comparar comportamento
-
-precisa validar lógica antiga
-
-🖥️ Requisitos gerais
-
-Python 3.10+
-
-Ambiente Windows recomendado (para Outlook + alguns recursos)
-
-Pip atualizado
-
-📚 Documentação
-
-Guia completo de implantação e empacotamento corporativo:
-
-docs/DEPLOYMENT.md
-
-✔️ Status do Projeto
-
-v1 → Legado (estável)
-
-v2 → Atual (manutenção ativa / evolução)
+- `v2/README.md`
+- `v1/README.md`
+- `CONTRIBUTING.md`
+- `CHANGELOG.md`

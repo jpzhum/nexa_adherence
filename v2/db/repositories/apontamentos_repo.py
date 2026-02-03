@@ -41,9 +41,9 @@ def upsert_apontamentos(records: Iterable[Dict[str, str]]) -> Dict[str, int]:
                 novos += 1
                 continue
 
-            unchanged = (row["escala"] or "") == (rec.get("escala") or "") and (row["raw_hash"] or "") == (
-                rec.get("raw_hash") or ""
-            )
+            unchanged = (row["escala"] or "") == (rec.get("escala") or "") and (
+                row["raw_hash"] or ""
+            ) == (rec.get("raw_hash") or "")
             if unchanged:
                 ignorados += 1
                 continue
@@ -54,7 +54,13 @@ def upsert_apontamentos(records: Iterable[Dict[str, str]]) -> Dict[str, int]:
                 SET escala = ?, raw_hash = ?
                 WHERE data = ? AND equipamento = ? AND turno = ?;
                 """,
-                (rec.get("escala"), rec.get("raw_hash"), rec["data"], rec["equipamento"], rec["turno"]),
+                (
+                    rec.get("escala"),
+                    rec.get("raw_hash"),
+                    rec["data"],
+                    rec["equipamento"],
+                    rec["turno"],
+                ),
             )
             atualizados += 1
 

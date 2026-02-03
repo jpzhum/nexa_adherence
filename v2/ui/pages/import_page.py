@@ -1,12 +1,12 @@
 from PyQt5.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QLabel,
-    QPushButton,
-    QFrame,
     QFileDialog,
+    QFrame,
+    QLabel,
     QMessageBox,
     QProgressBar,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 from v2.services.import_service import import_folder
@@ -85,7 +85,9 @@ class ImportPage(QWidget):
         self.progress.setValue(100)
         if summary.get("total", 0) == 0:
             self.status_label.setText("Nenhum arquivo encontrado na pasta.")
-            QMessageBox.information(self, "Importacao concluida", "Nenhum arquivo valido encontrado.")
+            QMessageBox.information(
+                self, "Importacao concluida", "Nenhum arquivo valido encontrado."
+            )
         else:
             self.status_label.setText(
                 f"Importados: {summary['importados']} | Duplicados: {summary['duplicados']} | Falhas: {summary['falhas']}"
@@ -98,6 +100,6 @@ class ImportPage(QWidget):
         self.progress.setValue(0)
         self.status_label.setText("Falha na importacao")
         logger.error("Falha na importacao por pasta: %s", message)
-        QMessageBox.warning(self, "Falha", "Nao foi possivel concluir a importacao.")
+        QMessageBox.warning(self, "Falha", f"Nao foi possivel concluir a importacao.\n{message}")
         self.state.refresh()
         self.refresh_state()

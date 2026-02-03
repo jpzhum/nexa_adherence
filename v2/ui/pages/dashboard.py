@@ -1,13 +1,13 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QTabWidget
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QLabel, QTabWidget, QVBoxLayout, QWidget
 
 from v2.services.dashboard_layout_service import get_layout
 from v2.services.dashboard_service import (
-    grafico_situacao_geral,
     grafico_aderencia_qtd_turno,
     grafico_agrupamento_percent,
     grafico_agrupamento_qtd,
     grafico_evolucao_diaria,
+    grafico_situacao_geral,
 )
 from v2.services.result_store import result_store
 

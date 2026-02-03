@@ -3,8 +3,8 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from v2.ui.main_window import MainWindow
 from v2.db.schema import ensure_schema
+from v2.ui.main_window import MainWindow
 from v2.utils.logging import get_logger
 
 logger = get_logger(__name__)

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Dict, Iterable, List, Optional
 
 import pandas as pd
@@ -19,7 +19,9 @@ class ChartConfig:
     query: QuerySpec
 
 
-def _apply_date_filter(df: pd.DataFrame, start_date: Optional[str], end_date: Optional[str]) -> pd.DataFrame:
+def _apply_date_filter(
+    df: pd.DataFrame, start_date: Optional[str], end_date: Optional[str]
+) -> pd.DataFrame:
     if "Data Cabecalho" not in df.columns:
         return df
     df = df.copy()
@@ -31,7 +33,9 @@ def _apply_date_filter(df: pd.DataFrame, start_date: Optional[str], end_date: Op
     return df
 
 
-def _apply_exclusions(df: pd.DataFrame, group_by: str, exclude: Optional[Iterable[str]]) -> pd.DataFrame:
+def _apply_exclusions(
+    df: pd.DataFrame, group_by: str, exclude: Optional[Iterable[str]]
+) -> pd.DataFrame:
     if not exclude:
         return df
     values = {str(v).strip().lower() for v in exclude}

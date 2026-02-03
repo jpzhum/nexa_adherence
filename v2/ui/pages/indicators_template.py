@@ -8,7 +8,6 @@ def render_html(resumos: dict) -> str:
     total_entregue = val.get("Total Entregue", 0)
     total_nao_entregue = max(total_esperado - total_entregue, 0)
 
-    ausentes = resumo_status.sum().get("Ausente", 0) if resumo_status is not None else 0
     incompletos = resumo_status.sum().get("Incompleto", 0) if resumo_status is not None else 0
 
     def pct(valor, total):
@@ -191,9 +190,9 @@ def render_html(resumos: dict) -> str:
     <div class="bar-container">
         <div class="bar-title">Incompletos</div>
         <div class="bar">
-            <div class="bar-fill" style="background:#00ACBC;" data-width="{pct(incompletos,total_esperado):.1f}%"></div>
+            <div class="bar-fill" style="background:#00ACBC;" data-width="{pct(incompletos, total_esperado):.1f}%"></div>
         </div>
-        <div class="bar-value">{pct(incompletos,total_esperado):.1f}%</div>
+        <div class="bar-value">{pct(incompletos, total_esperado):.1f}%</div>
         <div class="legend">Itens entregues parcialmente</div>
     </div>
 </div>
@@ -228,7 +227,11 @@ function animateGauge(canvasId, percent, color) {{
 }}
 
 animateGauge('gaugeAderencia', {aderencia:.1f}, getComputedStyle(document.documentElement).getPropertyValue('--ok').trim());
-animateGauge('gaugeEntregue', ({total_entregue}/{total_esperado})*100, getComputedStyle(document.documentElement).getPropertyValue('--warn').trim());
+animateGauge(
+    'gaugeEntregue',
+    {((total_entregue / total_esperado) * 100) if total_esperado else 0:.1f},
+    getComputedStyle(document.documentElement).getPropertyValue('--warn').trim()
+);
 
 Array.from(document.querySelectorAll('.bar-fill')).forEach(bar => {{
     const width = bar.getAttribute('data-width');

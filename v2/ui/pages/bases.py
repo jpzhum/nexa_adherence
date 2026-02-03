@@ -1,13 +1,13 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QLabel,
-    QPushButton,
-    QFrame,
     QFileDialog,
+    QFrame,
+    QLabel,
     QMessageBox,
     QProgressDialog,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 from v2.services.bases_service import update_equipamentos_from_excel, update_supervisores_from_excel

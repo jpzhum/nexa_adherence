@@ -1,18 +1,36 @@
-import pandas as pd
 from typing import Callable, Optional, Tuple
+
+import pandas as pd
 
 from v2.db.connection import get_connection
 from v2.services.analysis_service import (
-    normalize_turnos,
-    create_base,
-    pivot_turnos,
-    apply_rules,
     apply_exclusions,
-    calculate_metrics,
+    apply_rules,
     build_resumos,
+    calculate_metrics,
+    create_base,
+    normalize_turnos,
+    pivot_turnos,
 )
-from v2.services.regras_service import load_regras
 from v2.services.config_service import load_config
+from v2.services.regras_service import load_regras
+from v2.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+
+def _dedup_supervisores_by_agrup(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df["Agrup Equipamento"] = df["Agrup Equipamento"].astype(str).str.strip().str.upper()
+    df["Gestor"] = df["Gestor"].astype(str).str.strip()
+    df = df[~df["Agrup Equipamento"].isin({"", "NAN", "NONE"})]
+
+    duplicates = df[df["Agrup Equipamento"].duplicated(keep=False)]
+    if not duplicates.empty:
+        logger.warning(
+            "Foram encontrados agrupamentos com mais de um gestor. Usando o primeiro por agrupamento."
+        )
+    return df.drop_duplicates(subset=["Agrup Equipamento"], keep="first")
 
 
 def _load_equipamentos(conn) -> pd.DataFrame:
@@ -33,7 +51,7 @@ def _load_equipamentos(conn) -> pd.DataFrame:
 def _load_supervisores(conn) -> pd.DataFrame:
     df = pd.read_sql_query("SELECT nome, agrupamento FROM supervisores;", conn)
     df = df.rename(columns={"nome": "Gestor", "agrupamento": "Agrup Equipamento"})
-    return df
+    return _dedup_supervisores_by_agrup(df)
 
 
 def _load_apontamentos(conn, data_inicio, data_fim) -> pd.DataFrame:
@@ -50,6 +68,7 @@ def _load_apontamentos(conn, data_inicio, data_fim) -> pd.DataFrame:
             "escala": "Escala",
         }
     )
+    df["Equipamento"] = df["Equipamento"].astype(str).str.strip().str.upper()
     return df
 
 
@@ -58,16 +77,19 @@ def consolidate_period(
     data_fim,
     progress: Optional[Callable[[int, str], None]] = None,
 ) -> Tuple[pd.DataFrame, dict]:
+    if data_inicio > data_fim:
+        raise ValueError("Data inicial maior que data final.")
+
     if progress:
         progress(0, "Carregando bases")
 
-    di = data_inicio if isinstance(data_inicio, str) else data_inicio.isoformat()
-    df = data_fim if isinstance(data_fim, str) else data_fim.isoformat()
+    data_inicio_iso = data_inicio if isinstance(data_inicio, str) else data_inicio.isoformat()
+    data_fim_iso = data_fim if isinstance(data_fim, str) else data_fim.isoformat()
 
     with get_connection() as conn:
         eqp_df = _load_equipamentos(conn)
         sup_df = _load_supervisores(conn)
-        ap_df = _load_apontamentos(conn, di, df)
+        ap_df = _load_apontamentos(conn, data_inicio_iso, data_fim_iso)
 
     if eqp_df.empty:
         raise ValueError("Base de equipamentos vazia.")
@@ -82,7 +104,7 @@ def consolidate_period(
     if progress:
         progress(2, "Criando base completa")
 
-    base = create_base(eqp_df, di, df)
+    base = create_base(eqp_df, data_inicio_iso, data_fim_iso)
     cons = pivot_turnos(ap_df, base)
 
     if progress:
@@ -90,7 +112,11 @@ def consolidate_period(
 
     escala_map = ap_df.groupby(["Data Cabecalho", "Equipamento"])["Escala"].first().reset_index()
     cons = cons.merge(escala_map, on=["Data Cabecalho", "Equipamento"], how="left")
+    eqp_df["Equipamento"] = eqp_df["Equipamento"].astype(str).str.strip().str.upper()
+    eqp_df["Agrup Equipamento"] = eqp_df["Agrup Equipamento"].astype(str).str.strip().str.upper()
     cons = cons.merge(eqp_df[["Equipamento", "Agrup Equipamento"]], on="Equipamento", how="left")
+    cons["Agrup Equipamento"] = cons["Agrup Equipamento"].astype(str).str.strip().str.upper()
+    cons.loc[cons["Agrup Equipamento"].isin({"", "NAN", "NONE"}), "Agrup Equipamento"] = None
     cons = cons.merge(sup_df[["Agrup Equipamento", "Gestor"]], on="Agrup Equipamento", how="left")
     cons["Agrup Equipamento"] = cons["Agrup Equipamento"].fillna("Nao Informado")
     cons["Gestor"] = cons["Gestor"].fillna("Nao Informado")

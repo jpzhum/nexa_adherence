@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineView

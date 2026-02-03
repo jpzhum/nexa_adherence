@@ -22,6 +22,7 @@ def ensure_schema(conn: Optional[sqlite3.Connection] = None) -> None:
             _apply_migration_1(conn)
             _apply_migration_2(conn)
             _apply_migration_3(conn)
+            _apply_migration_4(conn)
             _set_version(conn, SCHEMA_VERSION)
         elif current_version < SCHEMA_VERSION:
             logger.info("Migrando schema v2 de %s para %s", current_version, SCHEMA_VERSION)
@@ -121,7 +122,9 @@ def _apply_migration_1(conn: sqlite3.Connection) -> None:
         )
         """
     )
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_apont_eqp_data ON apontamentos(equipamento, data);")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_apont_eqp_data ON apontamentos(equipamento, data);"
+    )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_apont_status ON apontamentos(status);")
 
     conn.execute(

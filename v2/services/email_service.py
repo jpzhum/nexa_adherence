@@ -22,7 +22,9 @@ def has_outlook() -> bool:
     return True
 
 
-def gerar_pdf_relatorio(imagens_inline: Dict[str, str], pasta_destino: str, periodo: str, data_emissao: str) -> str:
+def gerar_pdf_relatorio(
+    imagens_inline: Dict[str, str], pasta_destino: str, periodo: str, data_emissao: str
+) -> str:
     try:
         from reportlab.lib.pagesizes import A4
         from reportlab.lib.styles import getSampleStyleSheet
@@ -56,7 +58,9 @@ def gerar_pdf_relatorio(imagens_inline: Dict[str, str], pasta_destino: str, peri
     return pdf_path
 
 
-def preparar_arquivos(final_df, gerar_pdf: bool = False, periodo: str = "") -> Tuple[Dict[str, str], Optional[str]]:
+def preparar_arquivos(
+    final_df, gerar_pdf: bool = False, periodo: str = ""
+) -> Tuple[Dict[str, str], Optional[str]]:
     pasta_destino = os.path.join(tempfile.gettempdir(), "graficos_relatorio")
     os.makedirs(pasta_destino, exist_ok=True)
 
@@ -105,10 +109,9 @@ def montar_html(periodo: str, data_emissao: str, inline: bool = True) -> str:
 
   <p style="font-size:14px;">
     Atenciosamente,<br>
-    Este e-mail foi enviado automaticamente pelo sistema corporativo.<br>
-    <strong>Para duvidas ou ajustes na automacao, entre em contato com o desenvolvedor:</strong><br>
-    Joao Pedro Nogueira Silva<br>
-    Auxiliar Administrativo - Custos e Orcamento<br>
+    Este e-mail foi enviado automaticamente pelo sistema.<br>
+    <strong>Para duvidas ou ajustes na automacao:</strong><br>
+    Equipe Nexa<br>
     Email: email-removido@example.com | Tel.: +55 (00) 00000-0000
   </p>
 
@@ -128,6 +131,11 @@ def enviar_email(
     caminho_pdf: Optional[str] = None,
     enviar: bool = True,
 ) -> bool:
+    if isinstance(destinatarios, list):
+        destinatarios = [item for item in destinatarios if (item or "").strip()]
+    if not destinatarios:
+        raise ValueError("Lista de destinatarios vazia.")
+
     if win32 is None:
         raise RuntimeError("Outlook nao encontrado.")
     try:
@@ -145,7 +153,11 @@ def enviar_email(
 
     mail.HTMLBody = montar_html(periodo, data_emissao, inline=True)
 
-    if imagens_inline and "agrup_pct" in imagens_inline and os.path.isfile(imagens_inline["agrup_pct"]):
+    if (
+        imagens_inline
+        and "agrup_pct" in imagens_inline
+        and os.path.isfile(imagens_inline["agrup_pct"])
+    ):
         att = mail.Attachments.Add(imagens_inline["agrup_pct"])
         att.PropertyAccessor.SetProperty(
             "http://schemas.microsoft.com/mapi/proptag/0x3712001F", "agrup_pct"

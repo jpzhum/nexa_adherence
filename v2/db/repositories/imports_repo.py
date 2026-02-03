@@ -6,11 +6,15 @@ from v2.db.connection import get_connection
 
 def get_import_by_hash(file_hash: str) -> Optional[Dict[str, str]]:
     with get_connection() as conn:
-        row = conn.execute("SELECT id, status FROM imports WHERE file_hash = ?;", (file_hash,)).fetchone()
+        row = conn.execute(
+            "SELECT id, status FROM imports WHERE file_hash = ?;", (file_hash,)
+        ).fetchone()
         return {"id": row["id"], "status": row["status"]} if row else None
 
 
-def create_import(file_name: str, file_hash: str, status: str, rows_imported: int = 0, message: str = "") -> int:
+def create_import(
+    file_name: str, file_hash: str, status: str, rows_imported: int = 0, message: str = ""
+) -> int:
     with get_connection() as conn:
         cur = conn.execute(
             """
@@ -23,7 +27,9 @@ def create_import(file_name: str, file_hash: str, status: str, rows_imported: in
         return int(cur.lastrowid)
 
 
-def update_import_status(import_id: int, status: str, rows_imported: int = 0, message: str = "") -> None:
+def update_import_status(
+    import_id: int, status: str, rows_imported: int = 0, message: str = ""
+) -> None:
     with get_connection() as conn:
         conn.execute(
             """

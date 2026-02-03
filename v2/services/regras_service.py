@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 from v2.db.repositories.regras_repo import list_regras
 

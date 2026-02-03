@@ -29,16 +29,20 @@ def _formatar_percentuais(ws):
                 cell.number_format = "0.00%"
 
 
+def _normalize_date_column(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    aliases = ["Data Cabecalho", "Data Cabeçalho", "Data Cabe?alho", "Data CabeÃ§alho"]
+    for col in aliases:
+        if col in df.columns:
+            df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime("%d/%m/%Y")
+            if col != "Data Cabecalho":
+                df = df.rename(columns={col: "Data Cabecalho"})
+            break
+    return df
+
+
 def exportar_excel(final_df: pd.DataFrame, resumos: dict, caminho: str) -> None:
-    df_out = final_df.copy()
-    if "Data Cabeçalho" in df_out.columns:
-        df_out["Data Cabeçalho"] = pd.to_datetime(df_out["Data Cabeçalho"], errors="coerce").dt.strftime(
-            "%d/%m/%Y"
-        )
-    elif "Data Cabecalho" in df_out.columns:
-        df_out["Data Cabecalho"] = pd.to_datetime(df_out["Data Cabecalho"], errors="coerce").dt.strftime(
-            "%d/%m/%Y"
-        )
+    df_out = _normalize_date_column(final_df)
 
     with pd.ExcelWriter(caminho, engine="openpyxl") as writer:
         df_out.to_excel(writer, sheet_name="Base Consolidada", index=False)
@@ -49,7 +53,11 @@ def exportar_excel(final_df: pd.DataFrame, resumos: dict, caminho: str) -> None:
                 df_sheet = df_sheet.to_frame(name="Valor")
             if not isinstance(df_sheet, pd.DataFrame):
                 df_sheet = pd.DataFrame(df_sheet)
-            df_sheet.to_excel(writer, sheet_name=str(nome), index=True if df_sheet.index.names is not None else False)
+            df_sheet.to_excel(
+                writer,
+                sheet_name=str(nome),
+                index=True if df_sheet.index.names is not None else False,
+            )
 
     wb = load_workbook(caminho)
     for sheet in wb.sheetnames:

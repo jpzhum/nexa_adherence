@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
+from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 
 from v2.services.system_state import SystemStateService
 

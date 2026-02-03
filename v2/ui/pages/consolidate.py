@@ -1,19 +1,19 @@
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QLabel,
-    QPushButton,
+    QDateEdit,
     QFrame,
     QHBoxLayout,
-    QDateEdit,
+    QLabel,
     QMessageBox,
     QProgressBar,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from v2.services.system_state import SystemStateService
 from v2.services.consolidation_service import consolidate_period
 from v2.services.result_store import result_store
+from v2.services.system_state import SystemStateService
 from v2.ui.workers import ConsolidateWorker
 from v2.utils.logging import get_logger
 
@@ -85,7 +85,9 @@ class ConsolidatePage(QWidget):
 
     def _start(self):
         if self.di.date() > self.df.date():
-            QMessageBox.warning(self, "Datas invalidas", "A data inicial nao pode ser maior que a final.")
+            QMessageBox.warning(
+                self, "Datas invalidas", "A data inicial nao pode ser maior que a final."
+            )
             return
         self.btn.setEnabled(False)
         self.progress.setValue(0)
@@ -122,6 +124,6 @@ class ConsolidatePage(QWidget):
         self.progress.setValue(0)
         self.status_label.setText("Falha na consolidacao")
         logger.error("Falha na consolidacao: %s", message)
-        QMessageBox.warning(self, "Falha", "Nao foi possivel consolidar os dados.")
+        QMessageBox.warning(self, "Falha", f"Nao foi possivel consolidar os dados.\n{message}")
         self.state.refresh()
         self.refresh_state()

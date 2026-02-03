@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nexa-adherence"
+version = "2.0.0"
+description = "Sistema de analise de aderencia com versoes v1 (legacy) e v2 (principal)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "pandas>=2.0",
+  "openpyxl>=3.1",
+  "matplotlib>=3.8",
+  "reportlab>=4.0",
+]
+
+[project.optional-dependencies]
+gui = [
+  "PyQt5>=5.15",
+  "PyQtWebEngine>=5.15",
+]
+outlook = [
+  "pywin32>=306; platform_system == 'Windows'",
+]
+dev = [
+  "ruff>=0.9.0",
+  "pytest>=8.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["build", "dist", ".venv", "venv", "v1"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.hatch.build.targets.wheel]
+packages = ["v2", "v1"]

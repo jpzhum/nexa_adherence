@@ -107,10 +107,9 @@ def montar_html(periodo: str, data_emissao: str) -> str:
 
   <p style="font-size:14px;">
     Atenciosamente,<br>
-    Este e-mail foi enviado automaticamente pelo sistema corporativo.<br>
-    <strong>Para dúvidas ou ajustes na automação, entre em contato com o desenvolvedor:</strong><br>
-    João Pedro Nogueira Silva<br>
-    Auxiliar Administrativo - Custos e Orçamento<br>
+    Este e-mail foi enviado automaticamente pelo sistema.<br>
+    <strong>Para d??vidas ou ajustes na automa????o:</strong><br>
+    Equipe Nexa<br>
     Email: email-removido@example.com | Tel.: +55 (00) 00000-0000
   </p>
 

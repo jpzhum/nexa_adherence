@@ -11,7 +11,9 @@ DEFAULT_LAYOUT = {
     ]
 }
 
-LAYOUT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "resources", "dashboard_layout.json")
+LAYOUT_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "resources", "dashboard_layout.json"
+)
 
 
 def get_layout():

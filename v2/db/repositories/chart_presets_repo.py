@@ -7,8 +7,13 @@ from v2.db.connection import get_connection
 
 def list_presets() -> List[Dict]:
     with get_connection() as conn:
-        rows = conn.execute("SELECT id, name, config_json FROM chart_presets ORDER BY name;").fetchall()
-        return [{"id": row["id"], "name": row["name"], "config": json.loads(row["config_json"])} for row in rows]
+        rows = conn.execute(
+            "SELECT id, name, config_json FROM chart_presets ORDER BY name;"
+        ).fetchall()
+        return [
+            {"id": row["id"], "name": row["name"], "config": json.loads(row["config_json"])}
+            for row in rows
+        ]
 
 
 def save_preset(name: str, config: Dict) -> None:

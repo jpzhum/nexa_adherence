@@ -1,6 +1,14 @@
 from pathlib import Path
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QPushButton, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import (
+    QFileDialog,
+    QFrame,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from v2.services.export_service import exportar_excel
 from v2.services.exportbi_service import atualizar_bd_excel

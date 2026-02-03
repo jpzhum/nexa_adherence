@@ -1,15 +1,15 @@
 from PyQt5.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QLabel,
+    QComboBox,
     QFrame,
     QHBoxLayout,
-    QComboBox,
+    QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
-    QMessageBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 from v2.db.repositories.regras_repo import delete_regra, list_regras, upsert_regra
@@ -80,7 +80,9 @@ class RulesPage(QWidget):
         turno = self.turno.currentText().strip()
         escala = self.escala.currentText().strip()
         if not nome:
-            QMessageBox.warning(self, "Campo obrigatorio", "Informe o nome da frota ou agrupamento.")
+            QMessageBox.warning(
+                self, "Campo obrigatorio", "Informe o nome da frota ou agrupamento."
+            )
             return
         upsert_regra(tipo, nome, turno, escala)
         self.nome.setText("")

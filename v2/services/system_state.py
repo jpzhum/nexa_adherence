@@ -12,8 +12,12 @@ class SystemStateService:
     def refresh(self) -> None:
         try:
             with get_connection() as conn:
-                eqp = conn.execute("SELECT COUNT(*) AS total FROM equipamentos;").fetchone()["total"]
-                sup = conn.execute("SELECT COUNT(*) AS total FROM supervisores;").fetchone()["total"]
+                eqp = conn.execute("SELECT COUNT(*) AS total FROM equipamentos;").fetchone()[
+                    "total"
+                ]
+                sup = conn.execute("SELECT COUNT(*) AS total FROM supervisores;").fetchone()[
+                    "total"
+                ]
                 ap = conn.execute("SELECT COUNT(*) AS total FROM apontamentos;").fetchone()["total"]
                 db_ok = True
         except Exception:
@@ -38,7 +42,9 @@ class SystemStateService:
         )
 
     def can_import_apontamentos(self) -> bool:
-        return self.base_status.get("db_ok", False) and self.base_status.get("equipamentos_ready", False)
+        return self.base_status.get("db_ok", False) and self.base_status.get(
+            "equipamentos_ready", False
+        )
 
     def status_label(self, base_name: str) -> str:
         aliases = {

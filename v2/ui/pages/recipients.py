@@ -1,12 +1,12 @@
 from PyQt5.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QLabel,
     QFrame,
-    QListWidget,
+    QLabel,
     QLineEdit,
-    QPushButton,
+    QListWidget,
     QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 from v2.services.recipients_service import email_valid, load_recipients, save_recipients

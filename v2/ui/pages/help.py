@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
+from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 
 
 class HelpPage(QWidget):
@@ -14,5 +14,7 @@ class HelpPage(QWidget):
         card = QFrame()
         card.setObjectName("Card")
         card_layout = QVBoxLayout(card)
-        card_layout.addWidget(QLabel("Fluxo: Importar -> Consolidar -> Indicadores/Dashboard -> Exportar -> E-mail"))
+        card_layout.addWidget(
+            QLabel("Fluxo: Importar -> Consolidar -> Indicadores/Dashboard -> Exportar -> E-mail")
+        )
         layout.addWidget(card)

@@ -1,99 +1,110 @@
 from __future__ import annotations
 
-from pathlib import Path
 from datetime import datetime
-from typing import Dict
+from pathlib import Path
+from typing import Dict, Iterable, Optional
 
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
-
-def _formatar_ws(ws):
-    try:
-        if ws.max_row >= 2 and ws.max_column >= 1:
-            ws.auto_filter.ref = ws.dimensions
-            ws.freeze_panes = "A2"
-        for col in ws.columns:
-            max_len = 0
-            letter = get_column_letter(col[0].column)
-            for cell in col:
-                if cell.value is not None:
-                    parts = str(cell.value).split("\n")
-                    max_len = max(max_len, max(len(p) for p in parts))
-            ws.column_dimensions[letter].width = min(max_len + 2, 60)
-    except Exception:
-        pass
+PERCENT_ALIASES: Iterable[str] = (
+    "% Aderencia",
+    "% Aderencia ",
+    "% Aderência",
+    "% AderÃªncia",
+    "% Ader?ncia",
+    "Aderencia",
+)
 
 
-def _formatar_percentuais(ws):
-    try:
-        header_values = [ws.cell(row=1, column=c).value or "" for c in range(1, ws.max_column + 1)]
-        for r in range(2, ws.max_row + 1):
-            for c in range(1, ws.max_column + 1):
-                head = str(header_values[c - 1])
-                cell = ws.cell(row=r, column=c)
-                if isinstance(cell.value, (int, float)) and "%" in head:
-                    val = cell.value
-                    if val is not None:
-                        cell.value = (val / 100.0) if val > 1 else val
-                    cell.number_format = "0.00%"
-    except Exception:
-        pass
+def _formatar_ws(ws) -> None:
+    if ws.max_row >= 2 and ws.max_column >= 1:
+        ws.auto_filter.ref = ws.dimensions
+        ws.freeze_panes = "A2"
+    for col in ws.columns:
+        max_len = 0
+        letter = get_column_letter(col[0].column)
+        for cell in col:
+            if cell.value is not None:
+                parts = str(cell.value).split("\n")
+                max_len = max(max_len, max(len(p) for p in parts))
+        ws.column_dimensions[letter].width = min(max_len + 2, 60)
 
 
-def _aplicar_formatacao_pos_escrita(xlsx_path: Path, sheet_names: list) -> None:
-    try:
-        wb = load_workbook(xlsx_path)
-        for sheet_name in sheet_names:
-            if sheet_name in wb.sheetnames:
-                ws = wb[sheet_name]
-                _formatar_ws(ws)
-                _formatar_percentuais(ws)
-        wb.save(xlsx_path)
-    except Exception:
-        pass
+def _formatar_percentuais(ws) -> None:
+    header_values = [ws.cell(row=1, column=c).value or "" for c in range(1, ws.max_column + 1)]
+    for r in range(2, ws.max_row + 1):
+        for c in range(1, ws.max_column + 1):
+            head = str(header_values[c - 1])
+            cell = ws.cell(row=r, column=c)
+            if isinstance(cell.value, (int, float)) and "%" in head:
+                val = cell.value
+                cell.value = (val / 100.0) if val > 1 else val
+                cell.number_format = "0.00%"
 
 
-def _percent_col(df: pd.DataFrame) -> str:
-    if "% Ader?ncia" in df.columns:
-        return "% Ader?ncia"
-    if "% Aderencia" in df.columns:
-        return "% Aderencia"
-    if "Aderencia" in df.columns:
-        return "Aderencia"
-    return ""
+def _aplicar_formatacao_pos_escrita(xlsx_path: Path, sheet_names: list[str]) -> None:
+    wb = load_workbook(xlsx_path)
+    for sheet_name in sheet_names:
+        if sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            _formatar_ws(ws)
+            _formatar_percentuais(ws)
+    wb.save(xlsx_path)
 
 
-def _with_percent_column(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-    perc_col = _percent_col(df)
-    if not perc_col:
-        df["% Ader?ncia"] = 0
-        return df
-    if perc_col != "% Ader?ncia":
-        df["% Ader?ncia"] = df[perc_col]
-    return df
+def _find_percent_column(df: pd.DataFrame) -> Optional[str]:
+    for col in PERCENT_ALIASES:
+        if col in df.columns:
+            return col
+    return None
 
 
-def _ensure_data_column(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-    if "Data Cabecalho" in df.columns:
-        return df
-    if "Data Cabe?alho" in df.columns:
+def _normalize_base_columns(final: pd.DataFrame) -> pd.DataFrame:
+    df = final.copy()
+
+    if "Data Cabeçalho" in df.columns and "Data Cabecalho" not in df.columns:
+        df = df.rename(columns={"Data Cabeçalho": "Data Cabecalho"})
+    if "Data Cabe?alho" in df.columns and "Data Cabecalho" not in df.columns:
         df = df.rename(columns={"Data Cabe?alho": "Data Cabecalho"})
+
+    percent_col = _find_percent_column(df)
+    if percent_col and percent_col != "% Aderencia":
+        df["% Aderencia"] = df[percent_col]
+    elif "% Aderencia" not in df.columns:
+        df["% Aderencia"] = pd.to_numeric(df.get("Aderencia", 0), errors="coerce").fillna(0)
+
+    defaults = {
+        "Data Cabecalho": pd.NaT,
+        "Equipamento": "",
+        "Agrup Equipamento": "Nao Informado",
+        "Gestor": "Nao Informado",
+        "Escala": "PADRAO",
+        "Status": "Nao Informado",
+        "TURNO A": "-",
+        "TURNO B": "-",
+        "TURNO C": "-",
+        "Entregues": 0,
+        "Faltantes": 0,
+    }
+    for key, value in defaults.items():
+        if key not in df.columns:
+            df[key] = value
+
+    df["Data Cabecalho"] = pd.to_datetime(df["Data Cabecalho"], errors="coerce")
+    for numeric_col in ["Entregues", "Faltantes", "% Aderencia"]:
+        df[numeric_col] = pd.to_numeric(df[numeric_col], errors="coerce").fillna(0)
+
     return df
 
 
-def _qtd_turnos_esperados(row) -> int:
-    return 1 if str(row.get("Escala", "")).upper().strip() == "ADM" else 3
+def _qtd_turnos_esperados(row: pd.Series) -> int:
+    return 1 if str(row.get("Escala", "")).strip().upper() == "ADM" else 3
 
 
 def build_tbl_turnos(final: pd.DataFrame) -> pd.DataFrame:
-    df = _with_percent_column(_ensure_data_column(final))
-    for col in ["TURNO A", "TURNO B", "TURNO C", "Escala"]:
-        if col not in df.columns:
-            df[col] = "-" if col.startswith("TURNO") else "PADRAO"
+    df = _normalize_base_columns(final)
 
     long = pd.melt(
         df[["Data Cabecalho", "Equipamento", "Escala", "TURNO A", "TURNO B", "TURNO C"]],
@@ -103,54 +114,56 @@ def build_tbl_turnos(final: pd.DataFrame) -> pd.DataFrame:
         value_name="Flag",
     )
     long["Considerar"] = long.apply(
-        lambda r: (r["Turno"] == "TURNO A") if str(r["Escala"]).upper().strip() == "ADM" else True, axis=1
+        lambda row: (row["Turno"] == "TURNO A")
+        if str(row["Escala"]).upper().strip() == "ADM"
+        else True,
+        axis=1,
     )
     long = long[long["Considerar"]]
 
-    resumo = long.groupby("Turno").agg(
-        Entregues=("Flag", lambda s: (s == "OK").sum()),
-        Nao_entregues=("Flag", lambda s: (s != "OK").sum()),
-    ).reset_index()
+    resumo = (
+        long.groupby("Turno")
+        .agg(
+            Entregues=("Flag", lambda s: (s == "OK").sum()),
+            nao_entregues=("Flag", lambda s: (s != "OK").sum()),
+        )
+        .reset_index()
+    )
 
-    resumo["% Entregues"] = (
-        resumo["Entregues"] / (resumo["Entregues"] + resumo["Nao_entregues"]).replace(0, pd.NA)
-    ) * 100
-    resumo["% Não entregues"] = 100 - resumo["% Entregues"]
-    resumo = resumo.rename(columns={"Nao_entregues": "Não entregues"})
-    resumo["% Entregues"] = resumo["% Entregues"].round(2)
-    resumo["% Não entregues"] = resumo["% Não entregues"].round(2)
+    total = (resumo["Entregues"] + resumo["nao_entregues"]).replace(0, pd.NA)
+    resumo["% Entregues"] = (resumo["Entregues"] / total * 100).round(2)
+    resumo["% Nao entregues"] = (100 - resumo["% Entregues"]).round(2)
+    resumo = resumo.rename(columns={"nao_entregues": "Nao entregues"})
 
-    return resumo[["Turno", "Entregues", "Não entregues", "% Entregues", "% Não entregues"]]
+    return resumo[["Turno", "Entregues", "Nao entregues", "% Entregues", "% Nao entregues"]]
 
 
 def build_tbl_comparativo(final: pd.DataFrame, meta_percentual: float = 85.0) -> pd.DataFrame:
-    df = _with_percent_column(_ensure_data_column(final))
-    perc_col = "% Aderência"
-    for col in ["Gestor", "Agrup Equipamento", "TURNO A", "TURNO B", "TURNO C", perc_col, "Status", "Escala"]:
-        if col not in df.columns:
-            df[col] = "Nao Informado" if col in ["Gestor", "Agrup Equipamento", "Status"] else (
-                "-" if col.startswith("TURNO") else 0
-            )
+    df = _normalize_base_columns(final)
 
-    grp = df.groupby(["Gestor", "Agrup Equipamento"]).agg(
-        Entregues=("Entregues", "sum"),
-        Faltantes=("Faltantes", "sum"),
-        Aderencia_media=(perc_col, "mean"),
-        TurnoA=("TURNO A", lambda s: (s == "OK").sum()),
-        TurnoB=("TURNO B", lambda s: (s == "OK").sum()),
-        TurnoC=("TURNO C", lambda s: (s == "OK").sum()),
-    ).reset_index()
+    grp = (
+        df.groupby(["Gestor", "Agrup Equipamento"])
+        .agg(
+            Entregues=("Entregues", "sum"),
+            Faltantes=("Faltantes", "sum"),
+            Aderencia_media=("% Aderencia", "mean"),
+            TurnoA=("TURNO A", lambda s: (s == "OK").sum()),
+            TurnoB=("TURNO B", lambda s: (s == "OK").sum()),
+            TurnoC=("TURNO C", lambda s: (s == "OK").sum()),
+        )
+        .reset_index()
+    )
 
-    grp["Não entregues"] = grp["Faltantes"]
-    grp["[%] Entregues"] = grp["Entregues"] / (grp["Entregues"] + grp["Não entregues"]).replace(0, pd.NA) * 100
-    grp["[%] Entregues"] = grp["[%] Entregues"].round(2)
+    grp["Nao entregues"] = grp["Faltantes"]
+    total = (grp["Entregues"] + grp["Nao entregues"]).replace(0, pd.NA)
+    grp["[%] Entregues"] = (grp["Entregues"] / total * 100).round(2)
     grp["% De entregas"] = grp["Aderencia_media"].round(2)
-    grp["Linha de % da meta"] = meta_percentual
+    grp["Linha de % da meta"] = float(meta_percentual)
 
     out = grp.rename(
         columns={
             "Agrup Equipamento": "Agrupamento",
-            "Gestor": "Gestão",
+            "Gestor": "Gestao",
             "TurnoA": "Turno A",
             "TurnoB": "Turno B",
             "TurnoC": "Turno C",
@@ -159,9 +172,9 @@ def build_tbl_comparativo(final: pd.DataFrame, meta_percentual: float = 85.0) ->
 
     cols = [
         "Agrupamento",
-        "Gestão",
+        "Gestao",
         "Entregues",
-        "Não entregues",
+        "Nao entregues",
         "Turno A",
         "Turno B",
         "Turno C",
@@ -173,19 +186,20 @@ def build_tbl_comparativo(final: pd.DataFrame, meta_percentual: float = 85.0) ->
 
 
 def build_comparativo1(final: pd.DataFrame) -> pd.DataFrame:
-    df = _with_percent_column(_ensure_data_column(final))
+    df = _normalize_base_columns(final)
     df["Data"] = pd.to_datetime(df["Data Cabecalho"], errors="coerce")
-    df["Mês"] = df["Data"].dt.to_period("M").astype(str)
+    df["Mes"] = df["Data"].dt.to_period("M").astype(str)
     df["Frota"] = df["Equipamento"]
     df["Qtd Turnos"] = df.apply(_qtd_turnos_esperados, axis=1)
-    df["Porcentagem"] = df["% Aderência"]
+    df["Porcentagem"] = df["% Aderencia"]
     df["Apontamentos Faltantes"] = df["Faltantes"]
+
     for col in [
         "Tipo",
         "Subprocesso",
-        "Líder 1",
-        "Líder 2",
-        "Líder 3",
+        "Lider 1",
+        "Lider 2",
+        "Lider 3",
         "Insights_HTML",
         "Insights_HTML_Turnos",
         "KPI_Evolucao_HTML",
@@ -194,9 +208,10 @@ def build_comparativo1(final: pd.DataFrame) -> pd.DataFrame:
     ]:
         if col not in df.columns:
             df[col] = ""
+
     cols = [
         "Data",
-        "Mês",
+        "Mes",
         "Frota",
         "Escala",
         "TURNO A",
@@ -208,9 +223,9 @@ def build_comparativo1(final: pd.DataFrame) -> pd.DataFrame:
         "Status",
         "Tipo",
         "Subprocesso",
-        "Líder 1",
-        "Líder 2",
-        "Líder 3",
+        "Lider 1",
+        "Lider 2",
+        "Lider 3",
         "Insights_HTML",
         "Insights_HTML_Turnos",
         "KPI_Evolucao_HTML",
@@ -221,8 +236,9 @@ def build_comparativo1(final: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_base_de_dados(final: pd.DataFrame) -> pd.DataFrame:
-    df = _with_percent_column(_ensure_data_column(final))
-    df["Data Cabecalho"] = pd.to_datetime(df["Data Cabecalho"], errors="coerce").dt.strftime("%d/%m/%Y")
+    df = _normalize_base_columns(final)
+    df["Data Cabecalho"] = df["Data Cabecalho"].dt.strftime("%d/%m/%Y")
+
     cols = [
         "Data Cabecalho",
         "Equipamento",
@@ -231,15 +247,12 @@ def build_base_de_dados(final: pd.DataFrame) -> pd.DataFrame:
         "Escala",
         "Entregues",
         "Faltantes",
-        "% Aderência",
+        "% Aderencia",
         "Status",
         "TURNO A",
         "TURNO B",
         "TURNO C",
     ]
-    for c in cols:
-        if c not in df.columns:
-            df[c] = "" if c in ["Data Cabecalho", "Equipamento", "Agrup Equipamento", "Gestor", "Escala", "Status"] else 0
     return df[cols]
 
 
@@ -253,6 +266,7 @@ def _escrever_dfs(path: Path, dfs_por_aba: Dict[str, pd.DataFrame]) -> None:
     writer_args = {"engine": "openpyxl", "mode": mode}
     if mode == "a":
         writer_args["if_sheet_exists"] = "replace"
+
     with pd.ExcelWriter(path, **writer_args) as writer:
         for sheet_name, df in dfs_por_aba.items():
             if not isinstance(df, pd.DataFrame):
@@ -269,6 +283,7 @@ def atualizar_bd_excel(
     out_dir: str | None = None,
     filename: str | None = None,
 ) -> str:
+    _ = resumos
     tbl_turnos = build_tbl_turnos(final_df)
     tbl_comp = build_tbl_comparativo(final_df, meta_percentual=meta_percentual)
     comp1 = build_comparativo1(final_df)
