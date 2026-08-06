@@ -36,3 +36,5 @@ v2/data/destinatarios.json
 
 # Local recipients lists
 v1/destinatarios.json
+
+replacements*.txt
