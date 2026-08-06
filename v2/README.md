@@ -13,14 +13,14 @@ A `v2` e a versao recomendada do projeto.
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -e .[dev]
-pip install -e .[gui]        # opcional (UI completa)
-pip install -e .[outlook]    # opcional no Windows (envio via Outlook)
+pip install -e ".[dev]"
+pip install -e ".[gui]"        # opcional (UI completa)
+pip install -e ".[outlook]"    # opcional no Windows (envio via Outlook)
 ```
 
 ## Configuracao
 
-1. Copie `.env.example` para `.env` na raiz do projeto.
+1. Use `.env.example` como referencia e defina as variaveis no ambiente de execucao. O aplicativo nao carrega arquivos `.env` automaticamente.
 2. Se for usar lista de destinatarios local, copie `v2/destinatarios.example.json` para `v2/data/destinatarios.json`.
 3. Ajuste os valores de exemplo antes de usar em ambiente real.
 
@@ -36,7 +36,7 @@ python v2/app.py
 
 ```powershell
 ruff check .
-ruff format .
+ruff format --check .
 pytest -q
 ```
 
