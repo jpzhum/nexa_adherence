@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "nexa-adherence"
 version = "2.0.0"
-description = "Sistema de analise de aderencia com versoes v1 (legacy) e v2 (principal)."
+description = "Python application for operational data consolidation, analysis, reporting and controlled exports."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

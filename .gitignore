@@ -16,6 +16,9 @@ dist/
 logs/
 *.log
 config.json
+*.db
+*.sqlite
+*.sqlite3
 
 # OS/Editor
 .DS_Store
@@ -26,7 +29,16 @@ Thumbs.db
 # Data dumps (keep sample_data/ tracked for fixtures)
 *.xlsx
 *.xls
+*.xlsm
+*.csv
 data/
+
+# Generated reports and exports
+output/
+outputs/
+exports/
+reports/
+*.pdf
 
 # v2 local database/logs
 v2/data/*.db

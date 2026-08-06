@@ -1,8 +1,8 @@
 {
   "destinatarios": [
-    "email-removido@example.com"
+    "user@example.com"
   ],
   "cc": [
-    "email-removido@example.com"
+    "copy@example.com"
   ]
 }
