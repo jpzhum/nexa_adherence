@@ -2,6 +2,38 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
+SPREADSHEET_FORMULA_PREFIXES = ("=", "+", "-", "@")
+
+
+def _neutralize_spreadsheet_value(value):
+    if not isinstance(value, str):
+        return value
+    candidate = value.lstrip()
+    if candidate == "-":
+        return value
+    if candidate.startswith(SPREADSHEET_FORMULA_PREFIXES):
+        return f"'{value}"
+    return value
+
+
+def neutralize_spreadsheet_formulas(df: pd.DataFrame) -> pd.DataFrame:
+    """Return a copy whose text cells cannot be interpreted as Excel formulas."""
+    safe = df.copy()
+    for column in safe.columns:
+        safe[column] = safe[column].map(_neutralize_spreadsheet_value)
+
+    if isinstance(safe.index, pd.MultiIndex):
+        safe.index = pd.MultiIndex.from_tuples(
+            [tuple(_neutralize_spreadsheet_value(value) for value in row) for row in safe.index],
+            names=[_neutralize_spreadsheet_value(name) for name in safe.index.names],
+        )
+    else:
+        safe.index = pd.Index(
+            [_neutralize_spreadsheet_value(value) for value in safe.index],
+            name=_neutralize_spreadsheet_value(safe.index.name),
+        )
+    return safe
+
 
 def _formatar_ws(ws):
     ws.auto_filter.ref = ws.dimensions
@@ -42,7 +74,7 @@ def _normalize_date_column(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def exportar_excel(final_df: pd.DataFrame, resumos: dict, caminho: str) -> None:
-    df_out = _normalize_date_column(final_df)
+    df_out = neutralize_spreadsheet_formulas(_normalize_date_column(final_df))
 
     with pd.ExcelWriter(caminho, engine="openpyxl") as writer:
         df_out.to_excel(writer, sheet_name="Base Consolidada", index=False)
@@ -53,6 +85,7 @@ def exportar_excel(final_df: pd.DataFrame, resumos: dict, caminho: str) -> None:
                 df_sheet = df_sheet.to_frame(name="Valor")
             if not isinstance(df_sheet, pd.DataFrame):
                 df_sheet = pd.DataFrame(df_sheet)
+            df_sheet = neutralize_spreadsheet_formulas(df_sheet)
             df_sheet.to_excel(
                 writer,
                 sheet_name=str(nome),

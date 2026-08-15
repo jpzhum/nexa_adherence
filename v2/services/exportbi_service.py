@@ -8,6 +8,8 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
+from v2.services.export_service import neutralize_spreadsheet_formulas
+
 PERCENT_ALIASES: Iterable[str] = (
     "% Aderencia",
     "% Aderencia ",
@@ -114,9 +116,9 @@ def build_tbl_turnos(final: pd.DataFrame) -> pd.DataFrame:
         value_name="Flag",
     )
     long["Considerar"] = long.apply(
-        lambda row: (row["Turno"] == "TURNO A")
-        if str(row["Escala"]).upper().strip() == "ADM"
-        else True,
+        lambda row: (
+            (row["Turno"] == "TURNO A") if str(row["Escala"]).upper().strip() == "ADM" else True
+        ),
         axis=1,
     )
     long = long[long["Considerar"]]
@@ -271,6 +273,7 @@ def _escrever_dfs(path: Path, dfs_por_aba: Dict[str, pd.DataFrame]) -> None:
         for sheet_name, df in dfs_por_aba.items():
             if not isinstance(df, pd.DataFrame):
                 df = pd.DataFrame(df)
+            df = neutralize_spreadsheet_formulas(df)
             df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     _aplicar_formatacao_pos_escrita(path, sheet_names)

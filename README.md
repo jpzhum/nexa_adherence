@@ -1,6 +1,6 @@
 # Nexa Adherence
 
-Python desktop application for consolidating operational records, analysing adherence, producing reports, and creating controlled local exports.
+Python data automation desktop application for ingesting and normalising operational records, persisting them in SQLite, analysing adherence, and producing controlled local exports.
 
 > **Em português:** aplicação desktop para consolidar dados operacionais, aplicar filtros e regras, analisar indicadores e gerar relatórios locais.
 
@@ -32,6 +32,7 @@ Operational data often arrives in separate files with inconsistent headers, repe
 - Date-range consolidation with equipment/group exclusions and configurable shift rules.
 - Summary indicators and Matplotlib dashboards.
 - Multi-sheet Excel reports and a flat Excel export intended for downstream analysis.
+- Formula-like text is neutralised before v2 Excel export to prevent imported values from being evaluated as formulas.
 - Local HTML export; optional PDF generation is implemented through ReportLab.
 - Optional Outlook desktop integration on Windows, plus manual package export when Outlook is unavailable.
 - Local recipient-list management and rotating application logs.
@@ -84,14 +85,14 @@ Long-running imports and consolidations run through Qt worker threads so the int
 ## Technology stack
 
 - Python 3.10+
-- pandas and openpyxl for tabular data and Excel files
+- pandas, openpyxl, and xlrd for tabular data and Excel files
 - PyQt5 and PyQtWebEngine for the optional desktop interface
 - SQLite from the Python standard library
 - Matplotlib for charts
 - ReportLab for PDF generation
 - pywin32 for optional Outlook integration on Windows
 - pytest and Ruff for automated quality checks
-- GitHub Actions for CI on Python 3.11
+- GitHub Actions for CI on Python 3.12
 
 ## Quick start
 
@@ -158,12 +159,13 @@ Run the same checks expected for repository contributions:
 ```powershell
 ruff check .
 ruff format --check .
+python -m pip check
 pytest -q
 ```
 
-The tests exercise v2 input parsing, exclusion and shift logic, consolidation scenarios, export schema compatibility, indicator rendering, and recipient validation. They do not exercise the graphical interface, Outlook automation, or the legacy v1 implementation.
+The tests exercise v2 input parsing, exclusion and shift logic, consolidation scenarios, export schema compatibility and formula neutralisation, indicator rendering, e-mail template hygiene, and recipient validation. They do not exercise the graphical interface, Outlook automation, or the legacy v1 implementation.
 
-GitHub Actions currently runs Ruff linting and pytest on every push and pull request.
+GitHub Actions runs dependency checks, Ruff lint and format checks, and pytest on Python 3.12 for every push and pull request.
 
 ## Limitations
 
@@ -173,6 +175,7 @@ GitHub Actions currently runs Ruff linting and pytest on every push and pull req
 - Application state and recipient configuration are local to the selected SQLite data directory.
 - Outlook sending requires Windows, Outlook desktop, and the optional `pywin32` dependency. Exporting a package remains available without Outlook.
 - Automated tests focus on v2 business services and parsers; UI, Outlook, and v1 flows require manual verification.
+- Formula neutralisation is implemented and tested for v2 exports; use legacy v1 exports only with trusted input files.
 
 ## Data privacy
 

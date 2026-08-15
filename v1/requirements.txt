@@ -1,4 +1,6 @@
 ﻿PyQt5
 pandas
 openpyxl
+xlrd>=2.0.1
 matplotlib
+reportlab>=4.0

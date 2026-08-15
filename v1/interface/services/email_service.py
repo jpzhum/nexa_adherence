@@ -102,7 +102,7 @@ def montar_html(periodo: str, data_emissao: str) -> str:
   </table>
 
   <p style="margin-top:15px;font-size:13px;color:#555;">
-    <strong>Período:</strong> {periodo} | <strong>Fonte:</strong> GATec_OPE / GATec_EQP
+    <strong>Período:</strong> {periodo} | <strong>Fonte:</strong> Bases operacionais e de equipamentos
   </p>
 
   <p style="font-size:14px;">
