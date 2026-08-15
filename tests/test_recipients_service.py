@@ -7,8 +7,14 @@ def test_email_valid() -> None:
 
 
 def test_sanitize_list_removes_empty_and_duplicates() -> None:
-    values = ["  email-removido@example.com ", "", "email-removido@example.com", "email-removido@example.com", "  "]
-    assert recipients_service._sanitize_list(values) == ["email-removido@example.com", "email-removido@example.com"]
+    values = [
+        "  user@example.com ",
+        "",
+        "copy@example.com",
+        "user@example.com",
+        "  ",
+    ]
+    assert recipients_service._sanitize_list(values) == ["user@example.com", "copy@example.com"]
 
 
 def test_load_recipients_uses_env_defaults_when_file_is_missing(monkeypatch, tmp_path) -> None:

@@ -104,22 +104,15 @@ def montar_html(periodo: str, data_emissao: str, inline: bool = True) -> str:
   </table>
 
   <p style="margin-top:15px;font-size:13px;color:#555;">
-    <strong>Periodo:</strong> {periodo} | <strong>Fonte:</strong> GATec_OPE / GATec_EQP
+    <strong>Periodo:</strong> {periodo} | <strong>Fonte:</strong> Bases operacionais e de equipamentos
   </p>
 
   <p style="font-size:14px;">
     Atenciosamente,<br>
-<<<<<<< HEAD
     Este e-mail foi enviado automaticamente pelo sistema.<br>
     <strong>Para duvidas ou ajustes na automacao:</strong><br>
     Equipe Nexa<br>
-    Email: email-removido@example.com | Tel.: +55 (00) 00000-0000
-=======
-    Este e-mail foi enviado automaticamente pelo sistema corporativo.<br>
-    <strong>Para duvidas ou ajustes na automacao, entre em contato com o desenvolvedor:</strong><br>
-    Joao Pedro Nogueira Silva<br>
-    Email: email-removido@example.com |
->>>>>>> 89abb613f94287cc5231e5d45d9afaecda004ebf
+    Email: email-removido@example.com
   </p>
 
   <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">

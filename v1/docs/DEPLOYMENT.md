@@ -3,8 +3,8 @@ Deployment Guide (v2)
 
 Purpose
 -------
-This guide explains how to run, package, and deploy the v2 app inside the company
-environment. It includes dependencies, setup steps, and PyInstaller notes.
+This guide explains how to run and package the v2 app locally. It includes dependencies,
+setup steps, and PyInstaller notes.
 
 
 1) Requirements
@@ -20,7 +20,9 @@ Core Python packages used by v2:
 - PyQt5
 - pandas
 - openpyxl
+- xlrd
 - matplotlib
+- reportlab
 
 Optional:
 - PyQtWebEngine
@@ -40,10 +42,10 @@ python -m pip install --upgrade pip
 
 3) Install dependencies
 -----------------------
-Minimal install (core features):
+Install the project and desktop interface from the repository root:
 
 ```powershell
-pip install PyQt5 pandas openpyxl matplotlib
+pip install -e ".[gui]"
 ```
 
 Enable Indicators (HTML/WebEngine):
@@ -136,8 +138,8 @@ dist\\NexaAderencia.exe
 ```
 
 
-9) First run checklist (company PC)
------------------------------------
+9) First run checklist (local workstation)
+------------------------------------------
 - Start the EXE.
 - Go to Bases and import BD EQP + BD Supervisor.
 - Import apontamentos (Importacao).
@@ -160,6 +162,6 @@ Export errors:
 
 11) Maintenance notes
 ---------------------
-- Keep v1 intact (read-only reference).
-- v2 is the official source for data and output.
-- Avoid changing KPI logic; follow v1 as spec.
+- Treat v1 as a legacy reference and make functional changes in v2.
+- v2 is the primary implementation.
+- Validate business-rule changes with focused tests and synthetic data.

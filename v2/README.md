@@ -35,6 +35,7 @@ python v2/app.py
 ## Validacoes e qualidade
 
 ```powershell
+python -m pip check
 ruff check .
 ruff format --check .
 pytest -q

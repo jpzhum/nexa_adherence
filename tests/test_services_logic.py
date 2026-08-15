@@ -1,4 +1,5 @@
 import pandas as pd
+from openpyxl import load_workbook
 
 from v2.services.analysis_service import (
     apply_exclusions,
@@ -7,7 +8,9 @@ from v2.services.analysis_service import (
 )
 from v2.services.consolidation_service import _dedup_supervisores_by_agrup
 from v2.services.dashboard_service import grafico_aderencia_qtd_turno
-from v2.services.exportbi_service import build_base_de_dados
+from v2.services.email_service import montar_html
+from v2.services.export_service import exportar_excel
+from v2.services.exportbi_service import atualizar_bd_excel, build_base_de_dados
 from v2.ui.pages.indicators_template import render_html
 
 
@@ -120,3 +123,57 @@ def test_dedup_supervisores_by_agrup_keeps_one_row_per_group() -> None:
 
     assert len(out) == 2
     assert sorted(out["Agrup Equipamento"].tolist()) == ["COLHEITA", "PLANTIO"]
+
+
+def test_excel_export_neutralizes_formula_like_text(tmp_path) -> None:
+    final = pd.DataFrame(
+        {
+            "Data Cabecalho": ["2026-01-01"] * 4,
+            "Equipamento": ["=1+1", "+SUM(1,1)", "-2+3", "@SUM(1,1)"],
+        }
+    )
+    path = tmp_path / "report.xlsx"
+
+    exportar_excel(final, {}, str(path))
+
+    worksheet = load_workbook(path, data_only=False)["Base Consolidada"]
+    values = [worksheet.cell(row=row, column=2).value for row in range(2, 6)]
+    assert values == ["'=1+1", "'+SUM(1,1)", "'-2+3", "'@SUM(1,1)"]
+    assert all(worksheet.cell(row=row, column=2).data_type != "f" for row in range(2, 6))
+
+
+def test_email_template_contains_no_merge_conflict_markers() -> None:
+    html = montar_html("01/01/2026 a 31/01/2026", "01/02/2026 10:00")
+
+    assert "<<<<<<<" not in html
+    assert "=======" not in html
+    assert ">>>>>>>" not in html
+    assert "GATec" not in html
+    assert "Bases operacionais e de equipamentos" in html
+
+
+def test_power_bi_export_neutralizes_formula_like_text(tmp_path) -> None:
+    final = pd.DataFrame(
+        {
+            "Data Cabecalho": ["2026-01-01"],
+            "Equipamento": ["=1+1"],
+            "Agrup Equipamento": ["+SUM(1,1)"],
+            "Gestor": ["@SUM(1,1)"],
+            "Escala": ["PADRAO"],
+            "Entregues": [0],
+            "Faltantes": [3],
+            "Aderencia": [0.0],
+            "Status": ["Ausente"],
+            "TURNO A": ["-"],
+            "TURNO B": ["-"],
+            "TURNO C": ["-"],
+        }
+    )
+
+    path = atualizar_bd_excel(final, {}, out_dir=str(tmp_path))
+
+    worksheet = load_workbook(path, data_only=False)["Base de Dados"]
+    assert worksheet["B2"].value == "'=1+1"
+    assert worksheet["C2"].value == "'+SUM(1,1)"
+    assert worksheet["D2"].value == "'@SUM(1,1)"
+    assert all(worksheet[cell].data_type != "f" for cell in ("B2", "C2", "D2"))

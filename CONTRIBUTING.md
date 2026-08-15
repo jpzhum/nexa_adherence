@@ -10,6 +10,7 @@
 
 ## Quality checks
 
+- Dependencies: `python -m pip check`
 - Lint: `ruff check .`
 - Formatting: `ruff format --check .`
 - Tests: `pytest -q`

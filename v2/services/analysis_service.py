@@ -179,9 +179,11 @@ def calculate_metrics(df: pd.DataFrame) -> pd.DataFrame:
         axis=1,
     )
     df["Status"] = df.apply(
-        lambda r: "Completo"
-        if r["Entregues"] == (1 if r["Escala"] == "ADM" else 3)
-        else ("Ausente" if r["Entregues"] == 0 else "Incompleto"),
+        lambda r: (
+            "Completo"
+            if r["Entregues"] == (1 if r["Escala"] == "ADM" else 3)
+            else ("Ausente" if r["Entregues"] == 0 else "Incompleto")
+        ),
         axis=1,
     )
     return df
